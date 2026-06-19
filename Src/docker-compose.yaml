@@ -1,0 +1,45 @@
+services:
+  api:
+    image: ecommerce:latest
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: ecommerce_api
+    restart: on-failure
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=db_psql;Port=5432;Username=dotnet;Password=w1AjdyEZrVy2Pg2fNPvE;Database=ecommerce"
+
+    ports:
+      - 80:8080
+
+    mem_limit: 300M
+    cpus: 0.3
+
+    networks:
+      - infranet
+
+  db_psql:
+    image: postgres:18
+    container_name: db_psql
+    restart: no
+
+    environment:
+      POSTGRES_PASSWORD: postgresadmin
+
+    volumes:
+      - $VOLUMES/.postgres:/var/lib/postgresql/18/docker
+
+    ports:
+      - 5432:5432
+
+    mem_limit: 228M
+    cpus: 0.3
+
+    networks:
+      - infranet
+
+networks:
+  infranet:
+    driver: bridge
