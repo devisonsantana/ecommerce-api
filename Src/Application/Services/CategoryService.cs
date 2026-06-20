@@ -1,3 +1,4 @@
+using Ecommerce.Application.DTOs;
 using Ecommerce.Application.Interfaces;
 using Ecommerce.Domain.Common;
 using Ecommerce.Domain.Errors;
@@ -16,63 +17,69 @@ public class CategoryService : ICategoryService
         _repository = repository;
     }
 
-    public async Task<Result<Category>> GetByIdAsync(long id)
+    public async Task<Result<CategoryResponse>> GetByIdAsync(long id)
     {
         var model = await _repository.GetByIdAsync(id);
         if (model is null)
         {
             return Result.Fail(new NotFoundError($"Category Id '{id}' not found."));
         }
-        return Result.Ok(model);
+        var response = new CategoryResponse(model.Id, model.Name);
+        return Result.Ok(response);
     }
 
-    public async Task<Result<Category>> GetByNameAsync(string name)
+    public async Task<Result<CategoryResponse>> GetByNameAsync(string name)
     {
         var model = await _repository.GetByNameAsync(name);
         if (model is null)
         {
             return Result.Fail(new NotFoundError($"Category '{name}' not found."));
         }
-        return Result.Ok(model);
+        var response = new CategoryResponse(model.Id, model.Name);
+        return Result.Ok(response);
     }
 
-    public async Task<IEnumerable<Category>> GetAllAsync()
+    public async Task<IEnumerable<CategoryResponse>> GetAllAsync()
     {
-        return await _repository.GetAllAsync();
+        var categories = await _repository.GetAllAsync();
+        return categories.Select(c => new CategoryResponse(c.Id, c.Name)).ToList();
     }
 
-    public async Task<Result<Category>> CreateAsync(Category category)
+    public async Task<Result<CategoryCreateResponse>> CreateAsync(CategoryCreateRequest request)
     {
-        var model = await _repository.GetByNameAsync(category.Name);
+        var model = await _repository.GetByNameAsync(request.Name);
         if (model is Category)
         {
-            return Result.Fail(new ConflictError($"Category '{category.Name}' already exists."));
+            return Result.Fail(new ConflictError($"Category '{request.Name}' already exists."));
         }
-        await _repository.AddAsync(category);
+        var category = new Category(request.Name);
+        await _repository.AddAsync(new Category(request.Name));
         await _repository.SaveChangesAsync();
 
-        return Result.Ok(category);
+        var response = new CategoryCreateResponse(category.Id, category.Name);
+        return Result.Ok(response);
     }
 
-    public async Task<BulkResult<Category>> CreateBulkAsync(IEnumerable<Category> categories)
+    public async Task<BulkResult<CategoryCreateResponse>> CreateBulkAsync(IEnumerable<CategoryCreateRequest> requests)
     {
         var existing = await _repository.GetAllAsync();
         var existingNames = existing.Select(c => c.Name.ToLower()).ToHashSet();
 
-        var succeeded = new List<Category>();
+        var succeeded = new List<CategoryCreateResponse>();
         var failed = new List<string>();
 
-        foreach (var category in categories)
+        foreach (var request in requests)
         {
-            if (existingNames.Contains(category.Name.ToLower()))
+            if (existingNames.Contains(request.Name.ToLower()))
             {
-                failed.Add($"Category '{category.Name}' already exists.");
+                failed.Add($"Category '{request.Name}' already exists.");
                 continue;
             }
 
+            var category = new Category(request.Name);
             await _repository.AddAsync(category);
-            existingNames.Add(category.Name.ToLower());
-            succeeded.Add(category);
+            existingNames.Add(request.Name.ToLower());
+            succeeded.Add(new(category.Id, category.Name));
         }
 
         if (succeeded.Any())

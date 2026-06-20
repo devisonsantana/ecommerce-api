@@ -1,4 +1,5 @@
 using System.Net;
+using Ecommerce.Application.DTOs;
 using Ecommerce.Application.Interfaces;
 using Ecommerce.Domain.Errors;
 using Ecommerce.Domain.Models;
@@ -53,7 +54,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post([FromBody] Category request)
+    public async Task<IActionResult> Post([FromBody] CategoryCreateRequest request)
     {
         var result = await _service.CreateAsync(request);
 
@@ -69,7 +70,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPost("bulk")]
-    public async Task<IActionResult> PostBulk([FromBody] IEnumerable<Category> request)
+    public async Task<IActionResult> PostBulk([FromBody] IEnumerable<CategoryCreateRequest> request)
     {
         var results = await _service.CreateBulkAsync(request);
         return Ok(results);
