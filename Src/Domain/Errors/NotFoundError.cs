@@ -1,4 +1,3 @@
-using System.Net;
 using FluentResults;
 
 namespace Ecommerce.Domain.Errors;

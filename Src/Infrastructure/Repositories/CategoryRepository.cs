@@ -11,5 +11,5 @@ public class CategoryRepository : Repository<Category>, ICategoryRepository
 
     public async Task<Category?> GetByNameAsync(string name)
         => await Db
-            .FirstOrDefaultAsync(c => c.Name == name.ToLower());
+            .FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
 }

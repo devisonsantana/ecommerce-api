@@ -54,7 +54,7 @@ public class CategoryService : ICategoryService
             return Result.Fail(new ConflictError(
                 nameof(Category), nameof(categoryRequest.Name), categoryRequest.Name));
         }
-        var category = new Category(categoryRequest.Name);
+        var category = new Category(categoryRequest.Name.ToLower());
         await _repository.AddAsync(new Category(categoryRequest.Name));
         await _repository.SaveChangesAsync();
 
@@ -79,7 +79,7 @@ public class CategoryService : ICategoryService
                 continue;
             }
 
-            var category = new Category(request.Name);
+            var category = new Category(request.Name.ToLower());
             await _repository.AddAsync(category);
             existingNames.Add(request.Name.ToLower());
             succeeded.Add(new(category.Id, category.Name));
@@ -106,7 +106,7 @@ public class CategoryService : ICategoryService
             return Result.Fail(new ConflictError(
                     nameof(Category), nameof(categoryRequest.Name), categoryRequest.Name));
 
-        entity.UpdateName(categoryRequest.Name);
+        entity.UpdateName(categoryRequest.Name.ToLower());
 
         await _repository.UpdateAsync(entity);
         await _repository.SaveChangesAsync();
