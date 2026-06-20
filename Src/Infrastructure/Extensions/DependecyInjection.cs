@@ -1,4 +1,6 @@
+using Ecommerce.Domain.Interfaces;
 using Ecommerce.Infrastructure.Persistence.Context;
+using Ecommerce.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Infrastructure.Extensions;
@@ -14,6 +16,7 @@ public static class DependencyInjection
         });
 
         // Add services to the container.
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
 
         return services;
     }
