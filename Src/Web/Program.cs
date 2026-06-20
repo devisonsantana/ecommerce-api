@@ -1,3 +1,4 @@
+using Ecommerce.Application.Extensions;
 using Ecommerce.Infrastructure.Extensions;
 
 namespace Ecommerce.Web;
@@ -10,6 +11,7 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddInfrastructure(builder.Configuration);
+        builder.Services.AddServices();
 
         builder.Services.AddControllers();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
