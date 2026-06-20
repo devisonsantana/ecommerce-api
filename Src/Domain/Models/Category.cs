@@ -13,4 +13,9 @@ public class Category : BaseModel
     {
         Name = name;
     }
+
+    public void UpdateName(string name)
+    {
+        Name = name;
+    }
 }

@@ -5,8 +5,7 @@ namespace Ecommerce.Domain.Errors;
 
 public class ConflictError : Error
 {
-    public ConflictError(string message) : base(message)
-    {
-        WithMetadata(nameof(HttpStatusCode), StatusCodes.Status409Conflict);
-    }
+    public ConflictError(string entity, string field, object value)
+        : base($"{entity} with {field} '{value}' already exists.")
+    { }
 }

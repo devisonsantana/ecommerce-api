@@ -22,7 +22,7 @@ public class CategoryService : ICategoryService
         var model = await _repository.GetByIdAsync(id);
         if (model is null)
         {
-            return Result.Fail(new NotFoundError($"Category Id '{id}' not found."));
+            return Result.Fail(new NotFoundError(nameof(Category), nameof(id), id));
         }
         var response = new CategoryResponse(model.Id, model.Name);
         return Result.Ok(response);
@@ -33,7 +33,7 @@ public class CategoryService : ICategoryService
         var model = await _repository.GetByNameAsync(name);
         if (model is null)
         {
-            return Result.Fail(new NotFoundError($"Category '{name}' not found."));
+            return Result.Fail(new NotFoundError(nameof(Category), nameof(name), name));
         }
         var response = new CategoryResponse(model.Id, model.Name);
         return Result.Ok(response);
@@ -45,22 +45,25 @@ public class CategoryService : ICategoryService
         return categories.Select(c => new CategoryResponse(c.Id, c.Name)).ToList();
     }
 
-    public async Task<Result<CategoryCreateResponse>> CreateAsync(CategoryCreateRequest request)
+    public async Task<Result<CategoryCreateResponse>> CreateAsync(
+        CategoryCreateRequest categoryRequest)
     {
-        var model = await _repository.GetByNameAsync(request.Name);
+        var model = await _repository.GetByNameAsync(categoryRequest.Name);
         if (model is Category)
         {
-            return Result.Fail(new ConflictError($"Category '{request.Name}' already exists."));
+            return Result.Fail(new ConflictError(
+                nameof(Category), nameof(categoryRequest.Name), categoryRequest.Name));
         }
-        var category = new Category(request.Name);
-        await _repository.AddAsync(new Category(request.Name));
+        var category = new Category(categoryRequest.Name);
+        await _repository.AddAsync(new Category(categoryRequest.Name));
         await _repository.SaveChangesAsync();
 
         var response = new CategoryCreateResponse(category.Id, category.Name);
         return Result.Ok(response);
     }
 
-    public async Task<BulkResult<CategoryCreateResponse>> CreateBulkAsync(IEnumerable<CategoryCreateRequest> requests)
+    public async Task<BulkResult<CategoryCreateResponse>> CreateBulkAsync(
+        IEnumerable<CategoryCreateRequest> categoriesRequest)
     {
         var existing = await _repository.GetAllAsync();
         var existingNames = existing.Select(c => c.Name.ToLower()).ToHashSet();
@@ -68,11 +71,11 @@ public class CategoryService : ICategoryService
         var succeeded = new List<CategoryCreateResponse>();
         var failed = new List<string>();
 
-        foreach (var request in requests)
+        foreach (var request in categoriesRequest)
         {
             if (existingNames.Contains(request.Name.ToLower()))
             {
-                failed.Add($"Category '{request.Name}' already exists.");
+                failed.Add($"{nameof(Category)} with {nameof(request.Name)} '{request.Name}' already exists.");
                 continue;
             }
 
@@ -88,5 +91,39 @@ public class CategoryService : ICategoryService
         }
 
         return new(succeeded, failed);
+    }
+
+    public async Task<Result> UpdateAsync(long id, CategoryUpdateRequest categoryRequest)
+    {
+        var entity = await _repository.GetByIdAsync(id);
+
+        if (entity is null)
+            return Result.Fail(new NotFoundError(nameof(Category), nameof(id), id));
+
+        var existing = await _repository.GetByNameAsync(categoryRequest.Name);
+
+        if (existing is not null && existing.Id != id)
+            return Result.Fail(new ConflictError(
+                    nameof(Category), nameof(categoryRequest.Name), categoryRequest.Name));
+
+        entity.UpdateName(categoryRequest.Name);
+
+        await _repository.UpdateAsync(entity);
+        await _repository.SaveChangesAsync();
+
+        return Result.Ok();
+    }
+
+    public async Task<Result> DeleteAsync(long id)
+    {
+        var exists = await _repository.GetByIdAsync(id);
+
+        if (exists is null)
+            return Result.Fail(new NotFoundError(nameof(Category), nameof(id), id));
+
+        await _repository.RemoveAsync(exists);
+        await _repository.SaveChangesAsync();
+
+        return Result.Ok();
     }
 }

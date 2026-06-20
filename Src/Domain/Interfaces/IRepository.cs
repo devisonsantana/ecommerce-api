@@ -5,5 +5,7 @@ public interface IRepository<T> where T : class
     Task<T?> GetByIdAsync(long id);
     Task<IEnumerable<T>> GetAllAsync();
     Task AddAsync(T model);
+    Task UpdateAsync(T model);
+    Task RemoveAsync(T model);
     Task SaveChangesAsync();
 }

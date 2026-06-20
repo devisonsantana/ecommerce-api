@@ -70,9 +70,55 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPost("bulk")]
-    public async Task<IActionResult> PostBulk([FromBody] IEnumerable<CategoryCreateRequest> request)
+    public async Task<IActionResult> PostBulk(
+        [FromBody] IEnumerable<CategoryCreateRequest> request)
     {
         var results = await _service.CreateBulkAsync(request);
         return Ok(results);
+    }
+
+    [HttpPut("{id:long}")]
+    public async Task<IActionResult> Put(
+        [FromRoute] long id, [FromBody] CategoryUpdateRequest categoryRequest)
+    {
+        var result = await _service.UpdateAsync(id, categoryRequest);
+
+        if (result.IsFailed)
+        {
+            if (result.HasError<NotFoundError>())
+            {
+                return Problem(
+                    detail: result.Errors.First().Message,
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: HttpStatusCode.NotFound.ToString());
+            }
+
+            if (result.HasError<ConflictError>())
+            {
+                return Problem(
+                    detail: result.Errors.First().Message,
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: HttpStatusCode.Conflict.ToString());
+            }
+        }
+
+        return NoContent();
+    }
+
+
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> Delete([FromRoute] long id)
+    {
+        var result = await _service.DeleteAsync(id);
+
+        if (result.HasError<NotFoundError>())
+        {
+            return Problem(
+                detail: result.Errors.First().Message,
+                statusCode: StatusCodes.Status404NotFound,
+                title: HttpStatusCode.NotFound.ToString());
+        }
+
+        return NoContent();
     }
 }
