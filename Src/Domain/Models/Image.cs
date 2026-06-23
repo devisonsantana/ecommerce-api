@@ -2,7 +2,7 @@ using Ecommerce.Domain.Common;
 
 namespace Ecommerce.Domain.Models;
 
-public class Image : BaseModel
+public class Image : Entity
 {
     public string Url { get; private set; } = string.Empty;
 

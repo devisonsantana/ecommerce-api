@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace Ecommerce.Domain.Errors;
+namespace Ecommerce.Application.Errors;
 
 public class ConflictError : Error
 {

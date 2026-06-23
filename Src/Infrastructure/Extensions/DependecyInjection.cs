@@ -17,6 +17,7 @@ public static class DependencyInjection
 
         // Add services to the container.
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IBrandRepository, BrandRepository>();
 
         return services;
     }

@@ -1,19 +1,20 @@
 using System.Net;
-using Ecommerce.Application.DTOs;
-using Ecommerce.Application.Interfaces;
-using Ecommerce.Application.Errors;
-using Microsoft.AspNetCore.Mvc;
 using Ecommerce.Application.Common.Queries;
+using Ecommerce.Application.DTOs;
+using Ecommerce.Application.Errors;
+using Ecommerce.Application.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.Web.Controllers;
 
+
 [ApiController]
 [Route("[controller]")]
-public class CategoriesController : ControllerBase
+public class BrandsController : ControllerBase
 {
-    private readonly ICategoryService _service;
+    private readonly IBrandService _service;
 
-    public CategoriesController(ICategoryService service)
+    public BrandsController(IBrandService service)
     {
         _service = service;
     }
@@ -32,10 +33,10 @@ public class CategoriesController : ControllerBase
         return Ok(result.Value);
     }
 
-    [HttpGet("{name}")]
-    public async Task<IActionResult> GetByName([FromRoute] string name)
+    [HttpGet("{slug}")]
+    public async Task<IActionResult> GetBySlug([FromRoute] string slug)
     {
-        var result = await _service.GetByNameAsync(name);
+        var result = await _service.GetBySlugAsync(slug);
         if (result.HasError<NotFoundError>())
         {
             return Problem(
@@ -47,14 +48,14 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] CategoryQuery query)
+    public async Task<IActionResult> GetAll([FromQuery] BrandQuery query)
     {
-        var categories = await _service.GetAllAsync(query);
-        return Ok(categories);
+        var brands = await _service.GetAllAsync(query);
+        return Ok(brands);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post([FromBody] CategoryCreateRequest request)
+    public async Task<IActionResult> Post([FromBody] BrandCreateRequest request)
     {
         var result = await _service.CreateAsync(request);
 
@@ -71,7 +72,7 @@ public class CategoriesController : ControllerBase
 
     [HttpPost("bulk")]
     public async Task<IActionResult> PostBulk(
-        [FromBody] IEnumerable<CategoryCreateRequest> request)
+        [FromBody] IEnumerable<BrandCreateRequest> request)
     {
         var results = await _service.CreateBulkAsync(request);
         return Ok(results);
@@ -79,9 +80,9 @@ public class CategoriesController : ControllerBase
 
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Put(
-        [FromRoute] long id, [FromBody] CategoryUpdateRequest categoryRequest)
+        [FromRoute] long id, [FromBody] BrandUpdateRequest brandRequest)
     {
-        var result = await _service.UpdateAsync(id, categoryRequest);
+        var result = await _service.UpdateAsync(id, brandRequest);
 
         if (result.IsFailed)
         {

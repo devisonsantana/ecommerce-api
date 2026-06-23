@@ -17,8 +17,6 @@ public abstract class Repository<T> : IRepository<T> where T : class
 
     public async Task<T?> GetByIdAsync(long id)
         => await Db.FindAsync(id);
-    public async Task<IEnumerable<T>> GetAllAsync()
-        => await Db.ToListAsync();
 
     public async Task AddAsync(T model)
         => await Db.AddAsync(model);

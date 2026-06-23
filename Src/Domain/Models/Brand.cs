@@ -2,7 +2,7 @@ using Ecommerce.Domain.Common;
 
 namespace Ecommerce.Domain.Models;
 
-public class Brand : BaseModel
+public class Brand : Entity
 {
     public string Name { get; private set; } = string.Empty;
     public string Slug { get; private set; } = string.Empty;
@@ -16,5 +16,16 @@ public class Brand : BaseModel
         Name = name;
         Slug = SlugHelper.Generate(name);
         LogoUrl = logoUrl ?? string.Empty;
+    }
+
+    public void UpdateName(string name)
+    {
+        Name = name;
+        Slug = SlugHelper.Generate(name);
+    }
+
+    public void UpdateLogoUrl(string logoUrl)
+    {
+        LogoUrl = logoUrl;
     }
 }

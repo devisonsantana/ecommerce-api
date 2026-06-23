@@ -1,5 +1,6 @@
+using Ecommerce.Application.Common.Results;
+using Ecommerce.Application.Common.Queries;
 using Ecommerce.Application.DTOs;
-using Ecommerce.Domain.Common;
 using FluentResults;
 
 namespace Ecommerce.Application.Interfaces;
@@ -8,7 +9,7 @@ public interface ICategoryService
 {
     Task<Result<CategoryResponse>> GetByIdAsync(long id);
     Task<Result<CategoryResponse>> GetByNameAsync(string name);
-    Task<IEnumerable<CategoryResponse>> GetAllAsync();
+    Task<PagedResult<CategoryResponse>> GetAllAsync(CategoryQuery query);
     Task<Result<CategoryCreateResponse>> CreateAsync(
         CategoryCreateRequest categoryRequest);
     Task<BulkResult<CategoryCreateResponse>> CreateBulkAsync(
