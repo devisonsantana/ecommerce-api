@@ -52,7 +52,7 @@ public class BrandService : IBrandService
         var (items, totalItems) = await _repository.GetAllAsync(query);
 
         var brands = items.Select(b => new BrandResponse(
-            b.Id, b.Name, b.Slug, b.LogoUrl)).ToList();
+            b.Id, b.Name, b.Slug, b.LogoUrl));
 
         var result = new PagedResult<BrandResponse>(
             query.Page, query.PageSize, totalItems, brands);
@@ -87,29 +87,34 @@ public class BrandService : IBrandService
     public async Task<BulkResult<BrandCreateResponse>> CreateBulkAsync(
         IEnumerable<BrandCreateRequest> brandsRequest)
     {
-        var existing = await _repository.GetAllAsync();
-        var existingSlugs = existing.Select(b => b.Slug).ToHashSet();
+        var slugsToInsert = brandsRequest.Select(b => SlugHelper.Generate(b.Name)).ToHashSet();
+        var existingSlugs = (await _repository.GetExistingSlugs(slugsToInsert)).ToHashSet();
 
-        var succeeded = new List<BrandCreateResponse>();
         var failed = new List<string>();
+        var succeeded = new List<Brand>();
 
         foreach (var request in brandsRequest)
         {
-            var requestSlug = SlugHelper.Generate(request.Name);
-            if (existingSlugs.Contains(requestSlug))
+            var slug = SlugHelper.Generate(request.Name);
+            if (existingSlugs.Contains(slug))
             {
                 failed.Add($"{nameof(Brand)} with {nameof(request.Name)} '{request.Name}' already exists.");
                 continue;
             }
-
             var brand = new Brand(request.Name, request.LogoUrl);
-            await _repository.AddAsync(brand);
-            await _repository.SaveChangesAsync();
+            succeeded.Add(brand);
 
-            existingSlugs.Add(requestSlug);
-            succeeded.Add(new(brand.Id, brand.Name, brand.Slug, brand.LogoUrl));
+            existingSlugs.Add(slug);
         }
-        return new(succeeded, failed);
+
+        if (succeeded.Count > 0)
+        {
+            await _repository.AddRangeAsync(succeeded);
+            await _repository.SaveChangesAsync();
+        }
+
+        var created = succeeded.Select(b => new BrandCreateResponse(b.Id, b.Name, b.Slug, b.LogoUrl));
+        return new(created, failed);
     }
 
     public async Task<Result> UpdateAsync(long id, BrandUpdateRequest brandRequest)

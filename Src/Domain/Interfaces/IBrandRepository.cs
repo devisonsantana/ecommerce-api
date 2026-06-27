@@ -6,7 +6,8 @@ namespace Ecommerce.Domain.Interfaces;
 public interface IBrandRepository : IRepository<Brand>
 {
     Task<Brand?> GetBySlugAsync(string slug);
-    Task<IEnumerable<Brand>> GetAllAsync();
+    Task<IEnumerable<string>> GetExistingSlugs(IEnumerable<string> slugs);
     Task<(IEnumerable<Brand> Items, int TotalItems)> GetAllAsync(
         BrandQuery brandQuery);
+    Task AddRangeAsync(IEnumerable<Brand> brands);
 }

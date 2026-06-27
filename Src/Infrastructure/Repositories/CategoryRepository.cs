@@ -14,8 +14,10 @@ public class CategoryRepository : Repository<Category>, ICategoryRepository
         => await Db
             .FirstOrDefaultAsync(c => c.Name == name);
 
-    public async Task<IEnumerable<Category>> GetAllAsync()
-        => await Db.ToListAsync();
+    public async Task<IEnumerable<string>> GetExistingNames(IEnumerable<string> names)
+        => await Db.Where(c => names.Contains(c.Name))
+            .Select(c => c.Name)
+            .ToHashSetAsync();
 
     public async Task<(IEnumerable<Category> Items, int TotalItems)> GetAllAsync(
         CategoryQuery categoryQuery)
@@ -37,4 +39,7 @@ public class CategoryRepository : Repository<Category>, ICategoryRepository
 
         return (items, totalItems);
     }
+
+    public async Task AddRangeAsync(IEnumerable<Category> categories)
+        => await Db.AddRangeAsync(categories);
 }

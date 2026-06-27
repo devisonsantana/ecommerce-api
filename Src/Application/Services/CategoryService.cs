@@ -62,7 +62,7 @@ public class CategoryService : ICategoryService
                 nameof(Category), nameof(categoryRequest.Name), categoryRequest.Name));
         }
         var category = new Category(categoryRequest.Name);
-        await _repository.AddAsync(new Category(categoryRequest.Name));
+        await _repository.AddAsync(category);
         await _repository.SaveChangesAsync();
 
         var response = new CategoryCreateResponse(category.Id, category.Name);
@@ -72,10 +72,10 @@ public class CategoryService : ICategoryService
     public async Task<BulkResult<CategoryCreateResponse>> CreateBulkAsync(
         IEnumerable<CategoryCreateRequest> categoriesRequest)
     {
-        var existing = await _repository.GetAllAsync();
-        var existingNames = existing.Select(c => c.Name).ToHashSet();
+        var namesToInsert = categoriesRequest.Select(n => n.Name).ToHashSet();
+        var existingNames = (await _repository.GetExistingNames(namesToInsert)).ToHashSet();
 
-        var succeeded = new List<CategoryCreateResponse>();
+        var succeeded = new List<Category>();
         var failed = new List<string>();
 
         foreach (var request in categoriesRequest)
@@ -87,13 +87,18 @@ public class CategoryService : ICategoryService
             }
 
             var category = new Category(request.Name);
-            await _repository.AddAsync(category);
-            await _repository.SaveChangesAsync();
+            succeeded.Add(category);
+
             existingNames.Add(request.Name);
-            succeeded.Add(new(category.Id, category.Name));
         }
 
-        return new(succeeded, failed);
+        if (succeeded.Count > 0)
+        {
+            await _repository.AddRangeAsync(succeeded);
+            await _repository.SaveChangesAsync();
+        }
+        var created = succeeded.Select(c => new CategoryCreateResponse(c.Id, c.Name));
+        return new(created, failed);
     }
 
     public async Task<Result> UpdateAsync(long id, CategoryUpdateRequest categoryRequest)

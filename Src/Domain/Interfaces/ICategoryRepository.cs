@@ -6,7 +6,8 @@ namespace Ecommerce.Domain.Interfaces;
 public interface ICategoryRepository : IRepository<Category>
 {
     Task<Category?> GetByNameAsync(string name);
-    Task<IEnumerable<Category>> GetAllAsync();
+    Task<IEnumerable<string>> GetExistingNames(IEnumerable<string> names);
     Task<(IEnumerable<Category> Items, int TotalItems)> GetAllAsync(
         CategoryQuery query);
+    Task AddRangeAsync(IEnumerable<Category> categories);
 }
